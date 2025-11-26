@@ -1,9 +1,12 @@
 [wordpress]
-52.15.204.67 ansible_user=ubuntu ansible_ssh_private_key_file='/home/davi/ansible/delta1'
+localhost ansible_connection=local
+
 
 [GLPI]
-52.15.204.67 ansible_user=ubuntu ansible_ssh_private_key_file='/home/davi/ansible/delta1'
+localhost ansible_connection=local
+
 
 [mysql]
-52.15.204.67 ansible_user=ubuntu ansible_ssh_private_key_file='/home/davi/ansible/delta2'
+localhost ansible_connection=local
+
 
