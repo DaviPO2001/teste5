@@ -1,0 +1,61 @@
+--- 
+
+    - name: instalando dependecias mysql
+      ansible.builtin.apt:
+        pkg: 
+        - python3-pymysql
+        - mysql-server
+        state: latest
+        update_cache: yes
+      become: yes
+    
+    - name: Crindo uma base de dados do wordpress
+      community.mysql.mysql_db:
+        name: '{{wp_bd_name}}'
+        state: present
+        login_unix_socket: /run/mysqld/mysqld.sock
+      become: yes
+
+    - name: criando o usario a senha e os privilegios deles na base de dados do wordpress e liberando o acesso remoto do banco de dados
+      community.mysql.mysql_user:
+        name: '{{wp_bd_user}}'
+        password: '{{wp_bd_senha}}'
+        priv: '{{wp_bd_name}}.*:SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER'
+        state: present
+        login_unix_socket: /run/mysqld/mysqld.sock
+        host: '{{ item }}'
+      with_items:
+      - 'localhost'
+      - '127.0.0.1'
+      - '{{wp_ip}}'
+      become: yes
+
+    - name: Crindo uma base de dados do glpi  
+      community.mysql.mysql_db:
+        name: '{{glpi_bd_name}}'
+        state: present
+        login_unix_socket: /run/mysqld/mysqld.sock
+      become: yes
+
+    - name: criando o usario a senha e os privilegios deles na base de dados do glpi e liberando o acesso remoto do banco de dados
+      community.mysql.mysql_user:
+        name: '{{glpi_bd_user}}'
+        password: '{{glpi_bd_senha}}'
+        priv: '{{glpi_bd_name}}.*:SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER'
+        state: present
+        login_unix_socket: /run/mysqld/mysqld.sock
+        host: '{{ item }}'
+      with_items:
+      - 'localhost'
+      - '127.0.0.1'
+      - '{{wp_ip}}'
+      become: yes
+
+    - name: liberando o acesso do banco de dados mysql de forma remota
+      ansible.builtin.lineinfile:
+        path: /etc/mysql/mysql.conf.d/mysqld.cnf
+        regexp: '^bind-address\s*=.*'
+        line: 'bind-address = 0.0.0.0'
+        state: present
+      notify: reiniciando mysql
+      become: yes

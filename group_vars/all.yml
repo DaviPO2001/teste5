@@ -1,0 +1,8 @@
+---
+wp_bd_name: "wordpress_db"
+wp_bd_user: "wordpress_user"
+wp_bd_senha: "011495"
+
+glpi_bd_name: "glpi_db"
+glpi_bd_user: "glpi_user"
+glpi_bd_senha: "011495"

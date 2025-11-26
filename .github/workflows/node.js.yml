@@ -1,0 +1,29 @@
+name: Executar Testes Automáticos
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # você pode trocar por outra versão, se preferir
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Rodar testes
+        run: npm test

@@ -1,0 +1,6 @@
+---                                      # Handlers são tarefas que só rodam quando notificadas
+    - name: reiniciando mysql 
+      ansible.builtin.service:
+        name: mysql
+        state: restarted
+      become: yes

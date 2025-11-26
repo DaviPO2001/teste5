@@ -1,0 +1,41 @@
+---
+ - name: criando diretorio na pasta /srv/www e alterando o dono do diretorio para www-data
+   ansible.builtin.file:
+      path: /srv/www
+      state: directory
+      owner: www-data 
+      group: www-data
+  
+ - name: fazendo o dowload do GLPI e decompactando para pasta /srv/www
+   ansible.builtin.unarchive:
+     src: https://github.com/glpi-project/glpi/releases/download/11.0.2/glpi-11.0.2.tgz
+     dest: /srv/www
+     remote_src: yes
+ 
+ - name: Ajustar permissões do GLPI
+   ansible.builtin.file:
+     path: "{{ item }}"
+     state: directory
+     owner: www-data
+     group: www-data
+     recurse: yes
+   loop:
+     - /srv/www/glpi/files
+     - /srv/www/glpi/config
+     - /srv/www/glpi/plugins
+
+
+ - name: copiando o arquivo web.conf.j2 e colando em /etc/apache2/sites-available/000-default.conf                                   #NOT: instala e descompacta na maquina do ansible e distribui para outra
+   ansible.builtin.template:
+      src: templates/web.conf.j2
+      dest: /etc/apache2/sites-available/000-default.conf
+   notify: reiniciando o apache2
+   
+ - name: ativando site glpi
+   ansible.builtin.command: a2ensite glpi.conf
+   notify: reiniciando o apache2
+ 
+ - name: ativando módulo rewrite
+   ansible.builtin.command: a2enmod rewrite
+   notify: reiniciando o apache2
+   

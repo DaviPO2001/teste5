@@ -1,0 +1,6 @@
+---                                    # Handlers são tarefas que só rodam quando notificadas
+    - name: reiniciando o apache2
+      ansible.builtin.service:
+        name: apache2
+        state: reloaded
+      become: yes

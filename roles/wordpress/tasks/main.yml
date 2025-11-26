@@ -1,0 +1,59 @@
+---
+      - name: criando diretorio na pasta /srv/www e alterando o dono do diretorio para www-data
+        ansible.builtin.file:
+          path: /srv/www
+          state: directory
+          owner: www-data 
+          group: www-data
+        become: yes
+      
+      - name: fazendo o dowload do wordpress e decompactando para pasta /srv/www
+        ansible.builtin.unarchive:
+          src: https://wordpress.org/latest.tar.gz
+          dest: /srv/www
+          remote_src: yes
+        become: yes                       #YES: faz o processo apenas na maquina que será instalado.
+      
+      - name: copiando o arquivo web.conf.j2 e colando em cima do na pasta padrão do apache2                                    #NOT: instala e descompacta na maquina do ansible e distribui para outra
+        ansible.builtin.template:
+          src: templates/web.conf.j2
+          dest: /etc/apache2/sites-available/000-default.conf
+        notify: reiniciando o apache2
+        become: yes
+      
+
+      - name: copiando o arquivo de configuração de exemplo para wp-config.php                                    #NOT: instala e descompacta na maquina do ansible e distribui para outra
+        ansible.builtin.copy:
+          src: "{{wp_dir}}wp-config-sample.php"
+          dest: "{{wp_dir}}wp-config.php"
+          force: no
+          remote_src: yes
+        become: yes
+      
+      - name: configura o wp-config.php com os bancos de dados
+        ansible.builtin.replace:
+          path: '{{wp_dir}}wp-config.php'
+          regexp: "{{item.regexp}}"
+          replace: "{{item.replace}}"
+        with_items:
+        - {regexp: "database_name_here", replace: "{{wp_bd_name}}"}
+        - {regexp: "username_here", replace: "{{wp_bd_user}}"}
+        - {regexp: "password_here", replace: "{{wp_bd_senha}}"}
+        - {regexp: "localhost", replace: "{{bd_ip}}"}
+        become: yes
+
+      - name: Replace a localhost entry searching for a literal string to avoid escaping
+        ansible.builtin.lineinfile:
+          path: '{{wp_dir}}wp-config.php'
+          search_string: "{{item.search_string}}"
+          line: "{{item.line}}"
+        with_items:
+         - {search_string: "define( 'AUTH_KEY',         'put your unique phrase here' );", line: "define('AUTH_KEY',         '_[+[eI6_9v3ye08g|@,gb6yW.)C.InF[2)0kQi735I:P4K`;fX(A:Jse}JWe)M,Z');"}
+         - {search_string: "define( 'SECURE_AUTH_KEY',  'put your unique phrase here' );", line: "define('SECURE_AUTH_KEY',  'v*4xxR_=s>yiE`&-|~|8Pi,{t?(MLb5xM_YZ$xH0~60)W-l|&M-L(nQ<.V$-T(y^');"}
+         - {search_string: "define( 'LOGGED_IN_KEY',    'put your unique phrase here' );", line: "define('LOGGED_IN_KEY',    ')]o%zFDP?{mi!bW1qbwk-?UON#gxO{`3.j%Dt#t}Jo-&KP/A9#t3r k@qu.zXZB`');"}
+         - {search_string: "define( 'NONCE_KEY',        'put your unique phrase here' );", line: "define('NONCE_KEY',        'j@URD,51Ynimf&6`vZEt}F?:md#Q|AZ;2hK![k@# +-m27>{zQ9AK8w@eZ9o3]T)');"}
+         - {search_string: "define( 'AUTH_SALT',        'put your unique phrase here' );", line: "define('AUTH_SALT',        '*#n@n)jr00 C|N@>|<N+I;jiYh~{|x$+3O*F|PE|5}^6a$*W%BoPK}[@]kGfmTV1');"}
+         - {search_string: "define( 'SECURE_AUTH_SALT', 'put your unique phrase here' );", line: "define('SECURE_AUTH_SALT', '%Qjtq_[YD6P*|FZdZf]kmKHV/R_,C>ud7}E]btIlD:N9&ZIVkYR5#+Cr>AhF-^~Q');"}
+         - {search_string: "define( 'LOGGED_IN_SALT',   'put your unique phrase here' );", line: "define('LOGGED_IN_SALT',   'uT-XvHU4]tl1sXH{:s9>1&+9TMTq<(Db( ]4,q1-]ek5$dEc1oDTKh%COY/hghW0');"}
+         - {search_string: "define( 'NONCE_SALT',       'put your unique phrase here' );", line: "define('NONCE_SALT',       '##M{Eru5L1~8 &F uxrB,06}Ol-O /(RZ_iBak`A~rbUE)B4&/6oV.FtcxAOs(OH');"}
+        become: yes

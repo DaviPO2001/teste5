@@ -1,0 +1,19 @@
+---
+- hosts: wordpress
+  roles:
+  - wordpress
+  tags: wordpress
+  become: yes
+  
+- hosts: GLPI
+  roles:
+  - GLPI
+  tags: glpi
+  become: yes
+
+- hosts: mysql
+  roles:
+  - mysql
+  tags: mysql
+  become: yes
+
